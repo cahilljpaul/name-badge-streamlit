@@ -159,6 +159,50 @@ def hex_to_rgb01(h):
     except Exception:
         return (0, 0, 0)
 
+# Accepted (case-insensitive, trimmed) spellings for the required columns
+NAME_ALIASES = {"name", "full name", "attendee name", "delegate name"}
+ORG_ALIASES = {"organisation", "organization", "company", "organisation ", "organization "}
+
+def _norm_cell(v):
+    """Lowercase + trim a header cell for matching."""
+    return str(v).strip().lower()
+
+def find_header_row(raw_df, max_scan_rows=15):
+    """Find the row index containing both a Name-like and Organisation-like header, anywhere in the first rows."""
+    for i in range(min(max_scan_rows, len(raw_df))):
+        row_vals = [_norm_cell(v) for v in raw_df.iloc[i].tolist()]
+        if any(v in NAME_ALIASES for v in row_vals) and any(v in ORG_ALIASES for v in row_vals):
+            return i
+    return None
+
+def load_badge_excel(uploaded_file):
+    """
+    Read an uploaded Excel file, locate the header row wherever it is (not just row 1),
+    and normalize the Name/Organisation column names regardless of case, spacing or
+    American/British spelling. Returns (dataframe_or_None, error_message_or_None).
+    """
+    raw = pd.read_excel(uploaded_file, header=None, engine="openpyxl")
+    header_row = find_header_row(raw)
+    if header_row is None:
+        return None, (
+            "Couldn't find columns for 'Name' and 'Organisation' (or 'Organization') "
+            "in the first 15 rows of the sheet. Please ensure both column headers exist somewhere near the top."
+        )
+    columns = [str(c).strip() for c in raw.iloc[header_row].tolist()]
+    data = raw.iloc[header_row + 1:].reset_index(drop=True)
+    data.columns = columns
+    data = data.dropna(how="all")
+
+    rename_map = {}
+    for col in data.columns:
+        norm = _norm_cell(col)
+        if norm in NAME_ALIASES:
+            rename_map[col] = "Name"
+        elif norm in ORG_ALIASES:
+            rename_map[col] = "Organisation"
+    data = data.rename(columns=rename_map)
+    return data, None
+
 # =========================
 # PDF Generation
 # =========================
@@ -636,7 +680,9 @@ def open_img(upl):
 df = None
 if uploaded_excel is not None:
     try:
-        df = pd.read_excel(uploaded_excel, engine="openpyxl")
+        df, load_err = load_badge_excel(uploaded_excel)
+        if load_err:
+            st.error(load_err)
     except Exception as e:
         st.error(f"Failed to read Excel: {e}")
 
