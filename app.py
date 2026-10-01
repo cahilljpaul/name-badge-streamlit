@@ -571,6 +571,21 @@ def generate_badges_pdf(
 st.set_page_config(page_title="Name Badge Generator", layout="wide")
 st.title("📛 Name Badge Generator – Full Layout (No Overlap & Adjustable Text Box)")
 
+st.markdown(
+    """
+This tool turns a simple spreadsheet of attendees into print-ready name badges (PDF).
+
+**How to use it:**
+1. **Upload an Excel file** with a column for each person's **Name** and **Organisation** (the header names
+   can be anywhere near the top of the sheet, in any case, and "Organization" spelled the American way works too).
+2. **Optionally upload a logo and/or background image** to brand the badges.
+3. Use the options in the sidebar on the left to tweak fonts, colors, borders and layout — changes update live.
+4. Click **Download PDF** when you're happy with the preview, then print on your badge stock.
+
+No Excel to hand? Tick **"Use sample data"** in the sidebar to try it out with example names first.
+"""
+)
+
 # Large, clear upload prompts
 st.markdown("### 📂 Upload your files")
 uploaded_excel = st.file_uploader("**Upload Excel with at least 'Name' and 'Organisation' columns**", type=["xlsx"])
