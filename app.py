@@ -586,6 +586,16 @@ No Excel to hand? Tick **"Use sample data"** in the sidebar to try it out with e
 """
 )
 
+# Add new entries to the top of this list as the app changes.
+WHATS_NEW = [
+    ("2026-10-01", "Added this plain-language intro and usage guide."),
+    ("2026-10-01", "Excel upload is now more forgiving: the Name/Organisation header row can be anywhere "
+                   "near the top, in any case, with extra spaces, and 'Organization' (US spelling) is accepted."),
+]
+with st.expander("🆕 What's new", expanded=False):
+    for date, note in WHATS_NEW:
+        st.markdown(f"- **{date}** — {note}")
+
 # Large, clear upload prompts
 st.markdown("### 📂 Upload your files")
 uploaded_excel = st.file_uploader("**Upload Excel with at least 'Name' and 'Organisation' columns**", type=["xlsx"])
